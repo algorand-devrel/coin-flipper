@@ -1,0 +1,1 @@
+{"name": "CoinFlipper", "methods": [{"name": "flip_coin", "args": [{"type": "pay", "name": "bet_payment"}, {"type": "uint64", "name": "round"}, {"type": "bool", "name": "heads"}], "returns": {"type": "void"}}, {"name": "settle", "args": [{"type": "application", "name": "beacon_app"}], "returns": {"type": "string"}}], "networks": {}}
