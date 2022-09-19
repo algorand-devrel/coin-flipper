@@ -204,7 +204,7 @@ pushint 6 // appl
 itxn_field TypeEnum
 pushint 110096026 // 110096026
 itxn_field ApplicationID
-pushbytes 0x07df463e // "get_must(uint64,byte[])byte[]"
+pushbytes 0x47c20c23 // "must_get(uint64,byte[])byte[]"
 itxn_field ApplicationArgs
 load 12
 itob
@@ -229,8 +229,6 @@ app_local_get
 pushint 2 // 2
 *
 itxn_field Amount
-intc_0 // 0
-itxn_field Fee
 itxn_submit
 retsub
 

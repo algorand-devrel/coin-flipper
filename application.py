@@ -1,10 +1,14 @@
-from mimetypes import common_types
 from typing import Final
 from pyteal import *
 from beaker import *
 
 
 class CoinFlipper(Application):
+    """
+    Allows user to flip a coin, choosing heads or tails and some future round to settle.
+
+    If the user guesses correctly, their bet is doubled and paid out to them.
+    """
 
     commitment_round: Final[AccountStateValue] = AccountStateValue(TealType.uint64)
     bet: Final[AccountStateValue] = AccountStateValue(TealType.uint64)
@@ -27,6 +31,14 @@ class CoinFlipper(Application):
     def flip_coin(
         self, bet_payment: abi.PaymentTransaction, round: abi.Uint64, heads: abi.Bool
     ):
+        """called to place a bet on the outcome of a coin flip
+
+        Args:
+            payment: Algo payment transaction held in escrow until settlement
+            round: Uint64 representing the round to claim randomness for (must be multiple of 8 and in the future)
+            heads: boolean representing heads or tails
+
+        """
         return Seq(
             Assert(
                 bet_payment.get().amount() >= self.min_bet,
@@ -58,6 +70,14 @@ class CoinFlipper(Application):
     def settle(
         self, beacon_app: abi.Application = beacon_app_id, *, output: abi.String
     ):
+        """allows settlement of a bet placed during `flip_coin`
+
+        Args:
+            beacon_app: App ref for random oracle beacon
+
+        Returns:
+            A string with the result of the bet
+        """
         return Seq(
             # Get the randomness back
             (randomness := abi.DynamicBytes()).decode(self.get_randomness()),
@@ -75,18 +95,20 @@ class CoinFlipper(Application):
 
     @internal(TealType.none)
     def payout(self):
+        """pays out the bet * 2 in the case the user guessed correctly"""
         return InnerTxnBuilder.Execute(
             {
                 TxnField.type_enum: TxnType.Payment,
                 TxnField.receiver: Txn.sender(),
                 TxnField.amount: self.bet * Int(2),  # double the money, double the fun
                 # We'll cover the fee
-                #TxnField.fee: Int(0),
+                # TxnField.fee: Int(0),
             }
         )
 
     @internal(TealType.bytes)
     def get_randomness(self):
+        """requests randomness from random oracle beacon for requested round"""
         return Seq(
             (round := abi.Uint64()).set(self.commitment_round[Txn.sender()]),
             (user_data := abi.make(abi.DynamicArray[abi.Byte])).set([]),
