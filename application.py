@@ -101,8 +101,6 @@ class CoinFlipper(Application):
                 TxnField.type_enum: TxnType.Payment,
                 TxnField.receiver: Txn.sender(),
                 TxnField.amount: self.bet * Int(2),  # double the money, double the fun
-                # We'll cover the fee
-                # TxnField.fee: Int(0),
             }
         )
 
@@ -110,13 +108,17 @@ class CoinFlipper(Application):
     def get_randomness(self):
         """requests randomness from random oracle beacon for requested round"""
         return Seq(
+            # Prep arguments
             (round := abi.Uint64()).set(self.commitment_round[Txn.sender()]),
             (user_data := abi.make(abi.DynamicArray[abi.Byte])).set([]),
+            # Get randomness from oracle
             InnerTxnBuilder.ExecuteMethodCall(
                 app_id=self.beacon_app_id,
                 method_signature="must_get(uint64,byte[])byte[]",
                 args=[round, user_data],
             ),
+            # Remove first 4 bytes (ABI return prefix)
+            # and return the rest
             Suffix(InnerTxn.last_log(), Int(4)),
         )
 
