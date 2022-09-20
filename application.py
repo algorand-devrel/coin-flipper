@@ -10,22 +10,37 @@ class CoinFlipper(Application):
     If the user guesses correctly, their bet is doubled and paid out to them.
     """
 
-    commitment_round: Final[AccountStateValue] = AccountStateValue(TealType.uint64)
-    bet: Final[AccountStateValue] = AccountStateValue(TealType.uint64)
-    heads: Final[AccountStateValue] = AccountStateValue(TealType.uint64)
+    beacon_app_id: Final[ApplicationStateValue] = ApplicationStateValue(
+        TealType.uint64,
+        default=Int(110096026),
+        descr="The App ID of the randomness beacon. Should adhere to ARC-21",
+    )
+    min_bet: Final[ApplicationStateValue] = ApplicationStateValue(
+        TealType.uint64,
+        default=consts.MilliAlgos(5),
+        descr="The minimum bet for flipping a coin",
+    )
+    max_bet: Final[ApplicationStateValue] = ApplicationStateValue(
+        TealType.uint64,
+        default=consts.Algos(1),
+        descr="The maximum bet for flipping a coin",
+    )
+    bets_outstanding: Final[ApplicationStateValue] = ApplicationStateValue(
+        TealType.uint64,
+        default=Int(0),
+        descr="Counter to keep track of how many bets are outstanding.",
+    )
 
-    min_bet: Final[Int] = consts.MilliAlgos(5)
-    round_interval: Final[Int] = Int(8)
-
-    beacon_app_id: Int = Int(110096026)
-
-    @delete(authorize=Authorize.only(Global.creator_address()))
-    def delete(self):
-        return Approve()
-
-    @opt_in
-    def opt_in(self):
-        return Approve()
+    commitment_round: Final[AccountStateValue] = AccountStateValue(
+        TealType.uint64,
+        descr="The round this account committed to, to use for future randomness",
+    )
+    bet: Final[AccountStateValue] = AccountStateValue(
+        TealType.uint64, descr="The amount of the bet, to be doubled on win"
+    )
+    heads: Final[AccountStateValue] = AccountStateValue(
+        TealType.uint64, descr="The bet outcome, 0 for tails, >0 for heads"
+    )
 
     @external
     def flip_coin(
@@ -42,28 +57,27 @@ class CoinFlipper(Application):
         return Seq(
             Assert(
                 bet_payment.get().amount() >= self.min_bet,
-                comment="payment must be >= 5mA",
+                bet_payment.get().amount() <= self.max_bet,
+                comment="payment must be >= 5mA and < 1A",
             ),
             Assert(
                 bet_payment.get().receiver() == self.address,
                 comment="payment must to the contract address",
             ),
             Assert(
-                round.get() % self.round_interval == Int(0),
-                comment="round must be a multiple of 8",
-            ),
-            Assert(
-                round.get() >= (Global.round() + self.round_interval),
-                comment="round must be at least 1 interval in the future",
+                round.get() > Global.round(),
+                round.get() < Global.round() + Int(10),
+                comment="round must be at least 1 interval in the future and no more than 10 rounds in the future",
             ),
             Assert(
                 Not(self.commitment_round.exists()),
-                comment="there is already a commitment outstanding",
+                comment="there is already a bet outstanding",
             ),
             # Set fields for this sender
             self.commitment_round[Txn.sender()].set(round.get()),
             self.bet[Txn.sender()].set(bet_payment.get().amount()),
             self.heads[Txn.sender()].set(heads.get()),
+            self.bets_outstanding.increment(),
         )
 
     @external
@@ -91,6 +105,7 @@ class CoinFlipper(Application):
             self.commitment_round.delete(),
             self.bet.delete(),
             self.heads.delete(),
+            self.bets_outstanding.decrement(),
         )
 
     @internal(TealType.none)
@@ -120,6 +135,60 @@ class CoinFlipper(Application):
             # Remove first 4 bytes (ABI return prefix)
             # and return the rest
             Suffix(InnerTxn.last_log(), Int(4)),
+        )
+
+    ####
+    # App lifecycle
+    ###
+
+    @create
+    def create(self):
+        return self.initialize_application_state()
+
+    @delete(authorize=Authorize.only(Global.creator_address()))
+    def delete(self):
+        return Seq(
+            # Make sure we dont have any outstanding bets
+            Assert(self.bets_outstanding == Int(0)),
+            # Close out algo balance to app creator
+            InnerTxnBuilder.Execute(
+                {
+                    TxnField.type_enum: TxnType.Payment,
+                    TxnField.receiver: Txn.sender(),
+                    TxnField.amount: Int(0),
+                    TxnField.close_remainder_to: Txn.sender(),
+                }
+            ),
+            Approve(),
+        )
+
+    @update(authorize=Authorize.only(Global.creator_address()))
+    def update(self):
+        return Approve()
+
+    @opt_in
+    def opt_in(self):
+        return Approve()
+
+    # Clear/close out ok, but app keeps algos
+    # otherwise user could see that they'd lose a bet
+    # and try to cancel before settlement
+    @clear_state
+    def clear_state(self):
+        return Seq(
+            If(self.commitment_round[Txn.sender()] > Int(0)).Then(
+                self.bets_outstanding.decrement()
+            ),
+            Approve(),
+        )
+
+    @close_out
+    def close_out(self):
+        return Seq(
+            If(self.commitment_round[Txn.sender()] > Int(0)).Then(
+                self.bets_outstanding.decrement()
+            ),
+            Approve(),
         )
 
 

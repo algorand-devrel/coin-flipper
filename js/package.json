@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "gen": "npx beaker generate ../artifacts/CoinFlipper.json ./src/",
     "demo": "npx ts-node src/index.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "beaker-ts": "^0.0.31"
+    "beaker-ts": "^0.0.32"
   }
 }

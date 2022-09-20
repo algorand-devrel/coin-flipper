@@ -1,3 +1,30 @@
 #pragma version 7
-pushint 0 // 0
+intcblock 1 0
+bytecblock 0x626574735f6f75747374616e64696e67
+txn NumAppArgs
+intc_1 // 0
+==
+bnz main_l2
+err
+main_l2:
+callsub clearstate_0
+intc_0 // 1
+return
+
+// clear_state
+clearstate_0:
+txn Sender
+pushbytes 0x636f6d6d69746d656e745f726f756e64 // "commitment_round"
+app_local_get
+intc_1 // 0
+>
+bz clearstate_0_l2
+bytec_0 // "bets_outstanding"
+bytec_0 // "bets_outstanding"
+app_global_get
+intc_0 // 1
+-
+app_global_put
+clearstate_0_l2:
+intc_0 // 1
 return
