@@ -104,7 +104,11 @@ class CoinFlipper(Application):
 
     @external
     def settle(
-        self, beacon_app: abi.Application = beacon_app_id, *, output: abi.String
+        self,
+        bettor: abi.Account,
+        beacon_app: abi.Application = beacon_app_id,
+        *,
+        output: abi.String,
     ):
         """allows settlement of a bet placed during `flip_coin`
 
@@ -116,17 +120,19 @@ class CoinFlipper(Application):
         """
         return Seq(
             # Get the randomness back
-            (randomness := abi.DynamicBytes()).decode(self.get_randomness()),
-            # Take the very first bit and use it for heads/tails
-            (is_heads := ScratchVar()).store(GetBit(randomness.get(), Int(0))),
+            (randomness := abi.DynamicBytes()).decode(
+                self.get_randomness(self.commitment_round[bettor.address()])
+            ),
             # If they guessed right, payout
-            If(self.heads == is_heads.load())
+            # Take the very first bit and use it for heads/tails
+            If(self.heads == GetBit(randomness.get(), Int(0)))
             .Then(self.payout(), output.set(Bytes("You won!")))
             .Else(output.set(Bytes("You lost :("))),
             # Reset state
-            self.commitment_round.delete(),
-            self.bet.delete(),
-            self.heads.delete(),
+            self.commitment_round[bettor.address()].delete(),
+            self.bet[bettor.address()].delete(),
+            self.heads[bettor.address()].delete(),
+            # Decrement counter
             self.bets_outstanding.decrement(),
         )
 
@@ -142,11 +148,11 @@ class CoinFlipper(Application):
         )
 
     @internal(TealType.bytes)
-    def get_randomness(self):
+    def get_randomness(self, acct_round: Expr):
         """requests randomness from random oracle beacon for requested round"""
         return Seq(
             # Prep arguments
-            (round := abi.Uint64()).set(self.commitment_round[Txn.sender()]),
+            (round := abi.Uint64()).set(acct_round),
             (user_data := abi.make(abi.DynamicArray[abi.Byte])).set([]),
             # Get randomness from oracle
             InnerTxnBuilder.ExecuteMethodCall(

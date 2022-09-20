@@ -85,7 +85,7 @@ async function demo(){
   const feePaySp = await appClient.client.getTransactionParams().do();
   feePaySp.flatFee = true
   feePaySp.fee = 2000
-  const result = await appClient.settle({}, {suggestedParams: feePaySp})
+  const result = await appClient.settle({bettor: ACCOUNT.addr}, {suggestedParams: feePaySp})
   console.log(result.value)
 }
 

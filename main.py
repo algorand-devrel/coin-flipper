@@ -19,8 +19,9 @@ ACCOUNT_SIGNER = AccountTransactionSigner(ACCOUNT_SECRET)
 WAIT_DELAY = 11
 
 # TODO uncomment this if you want to use the currently deployed app on testnet
-# APP_ID = 111923397 
-APP_ID = 0 
+# APP_ID = 111923397
+APP_ID = 0
+
 
 def wait_for_round(round: int) -> int:
     return (round // 8) * 8 + WAIT_DELAY
@@ -89,7 +90,9 @@ def demo(app_id: int = 0):
     sp = algod_client.suggested_params()
     sp.flat_fee = True
     sp.fee = 2000  # cover this and 1 inner transaction
-    result = app_client.call(CoinFlipper.settle, suggested_params=sp)
+    result = app_client.call(
+        CoinFlipper.settle, bettor=ACCOUNT_ADDRESS, suggested_params=sp
+    )
     print(f"Results: {result.return_value}")
 
 
