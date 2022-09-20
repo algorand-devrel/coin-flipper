@@ -10,6 +10,9 @@ class CoinFlipper(Application):
     If the user guesses correctly, their bet is doubled and paid out to them.
     """
 
+    #
+    # App state values
+    #
     beacon_app_id: Final[ApplicationStateValue] = ApplicationStateValue(
         TealType.uint64,
         default=Int(110096026),
@@ -31,6 +34,9 @@ class CoinFlipper(Application):
         descr="Counter to keep track of how many bets are outstanding.",
     )
 
+    #
+    # Account state values
+    #
     commitment_round: Final[AccountStateValue] = AccountStateValue(
         TealType.uint64,
         descr="The round this account committed to, to use for future randomness",
@@ -41,6 +47,22 @@ class CoinFlipper(Application):
     heads: Final[AccountStateValue] = AccountStateValue(
         TealType.uint64, descr="The bet outcome, 0 for tails, >0 for heads"
     )
+
+    @external(authorize=Authorize.only(Global.creator_address()))
+    def configure(self, app_id: abi.Uint64, min_bet: abi.Uint64, max_bet: abi.Uint64):
+        """Allows configuration of the application state values
+
+        Args:
+            app_id: The uint64 app id of the beacon app to use
+            min_bet: The uint64 minimum bet allowed, specified in base algo units
+            max_bet: the uint64 maximum bet allowed, specified in base algo units
+        """
+        return Seq(
+            Assert(min_bet.get() < max_bet.get(), comment="min bet must be < max bet"),
+            self.beacon_app_id.set(app_id.get()),
+            self.min_bet.set(min_bet.get()),
+            self.max_bet.set(max_bet.get()),
+        )
 
     @external
     def flip_coin(

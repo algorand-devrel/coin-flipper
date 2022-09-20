@@ -1,20 +1,24 @@
 #pragma version 7
 intcblock 0 1 2
-bytecblock 0x626574735f6f75747374616e64696e67 0x636f6d6d69746d656e745f726f756e64 0x626574 0x6865616473 0x626561636f6e5f6170705f6964 0x6d61785f626574 0x6d696e5f626574
+bytecblock 0x626574735f6f75747374616e64696e67 0x636f6d6d69746d656e745f726f756e64 0x626561636f6e5f6170705f6964 0x6d61785f626574 0x6d696e5f626574 0x626574 0x6865616473
 txn NumAppArgs
 intc_0 // 0
 ==
-bnz main_l6
+bnz main_l8
+txna ApplicationArgs 0
+pushbytes 0x352d0f12 // "configure(uint64,uint64,uint64)void"
+==
+bnz main_l7
 txna ApplicationArgs 0
 pushbytes 0x8f28bdaa // "flip_coin(pay,uint64,bool)void"
 ==
-bnz main_l5
+bnz main_l6
 txna ApplicationArgs 0
 pushbytes 0xba11b3ff // "settle(application)string"
 ==
-bnz main_l4
+bnz main_l5
 err
-main_l4:
+main_l5:
 txn OnCompletion
 intc_0 // NoOp
 ==
@@ -26,15 +30,15 @@ assert
 txna ApplicationArgs 1
 intc_0 // 0
 getbyte
-callsub settle_10
-store 3
+callsub settle_12
+store 6
 pushbytes 0x151f7c75 // 0x151f7c75
-load 3
+load 6
 concat
 log
 intc_1 // 1
 return
-main_l5:
+main_l6:
 txn OnCompletion
 intc_0 // NoOp
 ==
@@ -45,72 +49,80 @@ intc_0 // 0
 assert
 txna ApplicationArgs 1
 btoi
-store 1
+store 4
 txna ApplicationArgs 2
 intc_0 // 0
 pushint 8 // 8
 *
 getbit
-store 2
+store 5
 txn GroupIndex
 intc_1 // 1
 -
-store 0
-load 0
+store 3
+load 3
 gtxns TypeEnum
 intc_1 // pay
 ==
 assert
-load 0
-load 1
-load 2
-callsub flipcoin_7
+load 3
+load 4
+load 5
+callsub flipcoin_9
 intc_1 // 1
 return
-main_l6:
+main_l7:
 txn OnCompletion
 intc_0 // NoOp
 ==
-bnz main_l16
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+store 0
+txna ApplicationArgs 2
+btoi
+store 1
+txna ApplicationArgs 3
+btoi
+store 2
+load 0
+load 1
+load 2
+callsub configure_8
+intc_1 // 1
+return
+main_l8:
+txn OnCompletion
+intc_0 // NoOp
+==
+bnz main_l18
 txn OnCompletion
 intc_1 // OptIn
 ==
-bnz main_l15
+bnz main_l17
 txn OnCompletion
 intc_2 // CloseOut
 ==
-bnz main_l14
+bnz main_l16
 txn OnCompletion
 pushint 4 // UpdateApplication
 ==
-bnz main_l13
+bnz main_l15
 txn OnCompletion
 pushint 5 // DeleteApplication
 ==
-bnz main_l12
+bnz main_l14
 err
-main_l12:
-txn ApplicationID
-intc_0 // 0
-!=
-assert
-callsub delete_2
-intc_1 // 1
-return
-main_l13:
-txn ApplicationID
-intc_0 // 0
-!=
-assert
-callsub update_4
-intc_1 // 1
-return
 main_l14:
 txn ApplicationID
 intc_0 // 0
 !=
 assert
-callsub closeout_6
+callsub delete_3
 intc_1 // 1
 return
 main_l15:
@@ -118,44 +130,66 @@ txn ApplicationID
 intc_0 // 0
 !=
 assert
-callsub optin_5
+callsub update_5
 intc_1 // 1
 return
 main_l16:
 txn ApplicationID
 intc_0 // 0
+!=
+assert
+callsub closeout_7
+intc_1 // 1
+return
+main_l17:
+txn ApplicationID
+intc_0 // 0
+!=
+assert
+callsub optin_6
+intc_1 // 1
+return
+main_l18:
+txn ApplicationID
+intc_0 // 0
 ==
 assert
-callsub create_0
+callsub create_1
 intc_1 // 1
 return
 
+// auth_only
+authonly_0:
+global CreatorAddress
+==
+retsub
+
 // create
-create_0:
-bytec 4 // "beacon_app_id"
+create_1:
+bytec_2 // "beacon_app_id"
 pushint 110096026 // 110096026
 app_global_put
 bytec_0 // "bets_outstanding"
 intc_0 // 0
 app_global_put
-bytec 5 // "max_bet"
+bytec_3 // "max_bet"
 pushint 1000000 // 1000000
 app_global_put
-bytec 6 // "min_bet"
+bytec 4 // "min_bet"
 pushint 5000 // 5000
 app_global_put
 retsub
 
 // auth_only
-authonly_1:
+authonly_2:
 global CreatorAddress
 ==
 retsub
 
 // delete
-delete_2:
+delete_3:
 txn Sender
-callsub authonly_1
+callsub authonly_2
 // unauthorized
 assert
 bytec_0 // "bets_outstanding"
@@ -177,74 +211,99 @@ intc_1 // 1
 return
 
 // auth_only
-authonly_3:
+authonly_4:
 global CreatorAddress
 ==
 retsub
 
 // update
-update_4:
+update_5:
 txn Sender
-callsub authonly_3
+callsub authonly_4
 // unauthorized
 assert
 intc_1 // 1
 return
 
 // opt_in
-optin_5:
+optin_6:
 intc_1 // 1
 return
 
 // close_out
-closeout_6:
+closeout_7:
 txn Sender
 bytec_1 // "commitment_round"
 app_local_get
 intc_0 // 0
 >
-bz closeout_6_l2
+bz closeout_7_l2
 bytec_0 // "bets_outstanding"
 bytec_0 // "bets_outstanding"
 app_global_get
 intc_1 // 1
 -
 app_global_put
-closeout_6_l2:
+closeout_7_l2:
 intc_1 // 1
 return
 
+// configure
+configure_8:
+store 12
+store 11
+store 10
+txn Sender
+callsub authonly_0
+// unauthorized
+assert
+load 11
+load 12
+<
+// min bet must be < max bet
+assert
+bytec_2 // "beacon_app_id"
+load 10
+app_global_put
+bytec 4 // "min_bet"
+load 11
+app_global_put
+bytec_3 // "max_bet"
+load 12
+app_global_put
+retsub
+
 // flip_coin
-flipcoin_7:
-store 9
-store 8
-store 7
-load 7
+flipcoin_9:
+store 15
+store 14
+store 13
+load 13
 gtxns Amount
-bytec 6 // "min_bet"
+bytec 4 // "min_bet"
 app_global_get
 >=
 // payment must be >= 5mA and < 1A
 assert
-load 7
+load 13
 gtxns Amount
-bytec 5 // "max_bet"
+bytec_3 // "max_bet"
 app_global_get
 <=
 // payment must be >= 5mA and < 1A
 assert
-load 7
+load 13
 gtxns Receiver
 global CurrentApplicationAddress
 ==
 // payment must to the contract address
 assert
-load 8
+load 14
 global Round
 >
 // round must be at least 1 interval in the future and no more than 10 rounds in the future
 assert
-load 8
+load 14
 global Round
 pushint 10 // 10
 +
@@ -255,24 +314,24 @@ txn Sender
 intc_0 // 0
 bytec_1 // "commitment_round"
 app_local_get_ex
-store 11
-store 10
-load 11
+store 17
+store 16
+load 17
 !
 // there is already a bet outstanding
 assert
 txn Sender
 bytec_1 // "commitment_round"
-load 8
+load 14
 app_local_put
 txn Sender
-bytec_2 // "bet"
-load 7
+bytec 5 // "bet"
+load 13
 gtxns Amount
 app_local_put
 txn Sender
-bytec_3 // "heads"
-load 9
+bytec 6 // "heads"
+load 15
 app_local_put
 bytec_0 // "bets_outstanding"
 bytec_0 // "bets_outstanding"
@@ -283,29 +342,29 @@ app_global_put
 retsub
 
 // get_randomness
-getrandomness_8:
+getrandomness_10:
 txn Sender
 bytec_1 // "commitment_round"
 app_local_get
-store 12
+store 18
 intc_0 // 0
 itob
 extract 6 0
 pushbytes 0x // ""
 concat
-store 13
+store 19
 itxn_begin
 pushint 6 // appl
 itxn_field TypeEnum
-bytec 4 // "beacon_app_id"
+bytec_2 // "beacon_app_id"
 app_global_get
 itxn_field ApplicationID
 pushbytes 0x47c20c23 // "must_get(uint64,byte[])byte[]"
 itxn_field ApplicationArgs
-load 12
+load 18
 itob
 itxn_field ApplicationArgs
-load 13
+load 19
 itxn_field ApplicationArgs
 itxn_submit
 itxn LastLog
@@ -313,14 +372,14 @@ extract 4 0
 retsub
 
 // payout
-payout_9:
+payout_11:
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
 txn Sender
 itxn_field Receiver
 txn Sender
-bytec_2 // "bet"
+bytec 5 // "bet"
 app_local_get
 intc_2 // 2
 *
@@ -329,49 +388,49 @@ itxn_submit
 retsub
 
 // settle
-settle_10:
-store 4
-callsub getrandomness_8
+settle_12:
+store 7
+callsub getrandomness_10
 extract 2 0
 intc_0 // 0
 getbit
-store 6
+store 9
 txn Sender
-bytec_3 // "heads"
+bytec 6 // "heads"
 app_local_get
-load 6
+load 9
 ==
-bnz settle_10_l2
+bnz settle_12_l2
 pushbytes 0x596f75206c6f7374203a28 // "You lost :("
-store 5
-load 5
+store 8
+load 8
 len
 itob
 extract 6 0
-load 5
+load 8
 concat
-store 5
-b settle_10_l3
-settle_10_l2:
-callsub payout_9
+store 8
+b settle_12_l3
+settle_12_l2:
+callsub payout_11
 pushbytes 0x596f7520776f6e21 // "You won!"
-store 5
-load 5
+store 8
+load 8
 len
 itob
 extract 6 0
-load 5
+load 8
 concat
-store 5
-settle_10_l3:
+store 8
+settle_12_l3:
 txn Sender
 bytec_1 // "commitment_round"
 app_local_del
 txn Sender
-bytec_2 // "bet"
+bytec 5 // "bet"
 app_local_del
 txn Sender
-bytec_3 // "heads"
+bytec 6 // "heads"
 app_local_del
 bytec_0 // "bets_outstanding"
 bytec_0 // "bets_outstanding"
@@ -379,5 +438,5 @@ app_global_get
 intc_1 // 1
 -
 app_global_put
-load 5
+load 8
 retsub
