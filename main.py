@@ -11,13 +11,16 @@ ALGOD_HOST = "https://testnet-api.algonode.cloud"
 ALGOD_TOKEN = ""
 
 # Generated account with algos on Testnet
-ACCOUNT_MNEMONIC = "tenant helmet motor sauce appear buddy gloom park average glory course wire buyer ostrich history time refuse room blame oxygen film diamond confirm ability spirit"
+ACCOUNT_MNEMONIC = ""
 ACCOUNT_ADDRESS = to_public_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SECRET = to_private_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SIGNER = AccountTransactionSigner(ACCOUNT_SECRET)
 
 WAIT_DELAY = 11
 
+# TODO uncomment this if you want to use the currently deployed app on testnet
+# APP_ID = 111923397 
+APP_ID = 0 
 
 def wait_for_round(round: int) -> int:
     return (round // 8) * 8 + WAIT_DELAY
@@ -91,4 +94,4 @@ def demo(app_id: int = 0):
 
 
 if __name__ == "__main__":
-    demo(app_id=111923397)
+    demo(app_id=APP_ID)

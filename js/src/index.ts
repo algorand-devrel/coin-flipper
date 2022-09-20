@@ -2,9 +2,11 @@ import algosdk from "algosdk";
 import * as bkr from "beaker-ts";
 import { CoinFlipper } from "./coinflipper_client";
 
-const APP_ID: number = 111923397;
+// TODO: uncomment this if you want to use the testnet one, but you'll need also make sure the account is opted in 
+//const APP_ID: number = 111923397;
+const APP_ID: number = 0;
 
-const ACCOUNT_MNEMONIC = "tenant helmet motor sauce appear buddy gloom park average glory course wire buyer ostrich history time refuse room blame oxygen film diamond confirm ability spirit";
+const ACCOUNT_MNEMONIC = "";
 const ACCOUNT = algosdk.mnemonicToSecretKey(ACCOUNT_MNEMONIC);
 const ACCOUNT_SIGNER = algosdk.makeBasicAccountTransactionSigner(ACCOUNT);
 
