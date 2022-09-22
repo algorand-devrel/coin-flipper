@@ -12,7 +12,7 @@ The application that verifies and stores the randomness can be treated as an ora
 
 The Oracle application in this example is on testnet with app id `​110096026` and adheres to [ARC-21](https://arc.algorand.foundation/ARCs/arc-0021)
 
-To read more about how VRF works and best practices when dealing with on-chain randomness, please see [this post](todo)
+To read more about how VRF works and best practices when dealing with on-chain randomness, please see [this post](https://developer.algorand.org/articles/usage-and-best-practices-for-randomness-beacon/)
 
 
 
