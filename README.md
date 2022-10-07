@@ -15,7 +15,6 @@ The Oracle application in this example is on testnet with app id `​110096026` 
 To read more about how VRF works and best practices when dealing with on-chain randomness, please see [this post](https://developer.algorand.org/articles/usage-and-best-practices-for-randomness-beacon/)
 
 
-
 ## Demo
 To run the demo, in either Python or Typescript, clone down the repo and `cd` into it
 ```sh
@@ -57,5 +56,3 @@ npm run demo
 ```
 
 This will create the application, fund it, opt your user in, and call the coin flip endpoint (choosing heads) then after some rounds will try to settle the bet.
-
-

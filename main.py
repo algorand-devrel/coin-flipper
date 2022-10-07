@@ -10,21 +10,18 @@ from beaker import *
 ALGOD_HOST = "https://testnet-api.algonode.cloud"
 ALGOD_TOKEN = ""
 
-# Generated account with algos on Testnet
-ACCOUNT_MNEMONIC = ""
+
+ACCOUNT_MNEMONIC = "tenant helmet motor sauce appear buddy gloom park average glory course wire buyer ostrich history time refuse room blame oxygen film diamond confirm ability spirit"
+#ACCOUNT_MNEMONIC = ""
 ACCOUNT_ADDRESS = to_public_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SECRET = to_private_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SIGNER = AccountTransactionSigner(ACCOUNT_SECRET)
 
-WAIT_DELAY = 11
+# TODO uncomment this if you want to use the currently deployed coin-flipper app on testnet
+APP_ID = 115057669 
+#APP_ID = 0
 
-# TODO uncomment this if you want to use the currently deployed app on testnet
-# APP_ID = 111923397
-APP_ID = 0
-
-
-def wait_for_round(round: int) -> int:
-    return (round // 8) * 8 + WAIT_DELAY
+WAIT_DELAY = 11 
 
 
 def demo(app_id: int = 0):
@@ -54,7 +51,7 @@ def demo(app_id: int = 0):
     if "commitment_round" not in acct_state:
         sp = algod_client.suggested_params()
 
-        # Add 2 rounds to the first available round to give us a little
+        # Add 3 rounds to the first available round to give us a little
         # padding time
         round = sp.first + 3
 
@@ -73,18 +70,17 @@ def demo(app_id: int = 0):
         # We have a bet
         round = acct_state["commitment_round"]
 
-    # Since the VRF data is written every 8 rounds we wait until
-    # the next written round (ie floor(round/8)*8)) + some padding (5)
-    # to account for delay from off chain processing
-    wait_round = wait_for_round(round)
+    print(f"Bet placed for round: {round}")
 
-    print(f"Waiting for round: {wait_round}")
+    # wait an extra couple rounds  
+    wait_round = round + 2
+
     sp = algod_client.suggested_params()
     current_round = sp.first
-    while current_round < wait_round:
-        current_round += 1
-        algod_client.status_after_block(current_round)
+    while current_round<wait_round:
         print(f"Currently at round {current_round}")
+        algod_client.status_after_block(current_round)
+        current_round += 1
 
     print("Settling...")
     sp = algod_client.suggested_params()
