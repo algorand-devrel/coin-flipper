@@ -16,7 +16,7 @@ export class CoinFlipper extends bkr.ApplicationClient {
         min_bet: bigint;
         max_bet: bigint;
     }, txnParams?: bkr.TransactionOverrides): Promise<bkr.ABIResult<void>> {
-        const result = await this.call(algosdk.getMethodByName(this.methods, "configure"), { app_id: args.app_id, min_bet: args.min_bet, max_bet: args.max_bet }, txnParams);
+        const result = await this.execute(await this.compose.configure({ app_id: args.app_id, min_bet: args.min_bet, max_bet: args.max_bet }, txnParams));
         return new bkr.ABIResult<void>(result);
     }
     async flip_coin(args: {
@@ -24,14 +24,36 @@ export class CoinFlipper extends bkr.ApplicationClient {
         round: bigint;
         heads: boolean;
     }, txnParams?: bkr.TransactionOverrides): Promise<bkr.ABIResult<void>> {
-        const result = await this.call(algosdk.getMethodByName(this.methods, "flip_coin"), { bet_payment: args.bet_payment, round: args.round, heads: args.heads }, txnParams);
+        const result = await this.execute(await this.compose.flip_coin({ bet_payment: args.bet_payment, round: args.round, heads: args.heads }, txnParams));
         return new bkr.ABIResult<void>(result);
     }
     async settle(args: {
         bettor: string;
         beacon_app?: bigint;
     }, txnParams?: bkr.TransactionOverrides): Promise<bkr.ABIResult<string>> {
-        const result = await this.call(algosdk.getMethodByName(this.methods, "settle"), { bettor: args.bettor, beacon_app: args.beacon_app === undefined ? await this.resolve("global-state", "beacon_app_id") : args.beacon_app }, txnParams);
+        const result = await this.execute(await this.compose.settle({ bettor: args.bettor, beacon_app: args.beacon_app === undefined ? await this.resolve("global-state", "beacon_app_id") as bigint : args.beacon_app }, txnParams));
         return new bkr.ABIResult<string>(result, result.returnValue as string);
     }
+    compose = {
+        configure: async (args: {
+            app_id: bigint;
+            min_bet: bigint;
+            max_bet: bigint;
+        }, txnParams?: bkr.TransactionOverrides, atc?: algosdk.AtomicTransactionComposer): Promise<algosdk.AtomicTransactionComposer> => {
+            return this.addMethodCall(algosdk.getMethodByName(this.methods, "configure"), { app_id: args.app_id, min_bet: args.min_bet, max_bet: args.max_bet }, txnParams, atc);
+        },
+        flip_coin: async (args: {
+            bet_payment: algosdk.TransactionWithSigner | algosdk.Transaction;
+            round: bigint;
+            heads: boolean;
+        }, txnParams?: bkr.TransactionOverrides, atc?: algosdk.AtomicTransactionComposer): Promise<algosdk.AtomicTransactionComposer> => {
+            return this.addMethodCall(algosdk.getMethodByName(this.methods, "flip_coin"), { bet_payment: args.bet_payment, round: args.round, heads: args.heads }, txnParams, atc);
+        },
+        settle: async (args: {
+            bettor: string;
+            beacon_app?: bigint;
+        }, txnParams?: bkr.TransactionOverrides, atc?: algosdk.AtomicTransactionComposer): Promise<algosdk.AtomicTransactionComposer> => {
+            return this.addMethodCall(algosdk.getMethodByName(this.methods, "settle"), { bettor: args.bettor, beacon_app: args.beacon_app === undefined ? await this.resolve("global-state", "beacon_app_id") : args.beacon_app }, txnParams, atc);
+        }
+    };
 }
