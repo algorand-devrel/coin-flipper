@@ -49,7 +49,7 @@ export default function App() {
     // Bad way to track connected status but...
     if (accountSettings.data.acctList.length == 0 && appClient.sender !== "") {
       setAppClient(AnonClient(algodClient, appId));
-    }else if (SessionWalletManager.address(network) != appClient.sender){
+    }else if (SessionWalletManager.connected(network) && SessionWalletManager.address(network) !== appClient.sender){
       setAppClient(
         new CoinFlipper({
           client: algodClient,
@@ -63,7 +63,7 @@ export default function App() {
 
   // Deploy the app on chain
   async function createApp() {
-    const [appId, ,] = await appClient.create();
+    const {appId} = await appClient.create();
     setAppId(appId);
     alert(`Created app: ${appId}`);
   }
