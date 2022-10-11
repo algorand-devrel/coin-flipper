@@ -128,19 +128,23 @@ export default function App() {
   async function flipCoin(bfd: BetFormData) {
     console.log(`Flip coin with data: `, bfd);
 
-    const sp = await appClient.client.getTransactionParams().do();
-    const round = sp.firstRound + 3
-    await appClient.flip_coin({
-      bet_payment: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: appClient.sender,
-        suggestedParams: sp,
-        to: appAddress,
-        amount: bfd.amount * 1_000,
-      }),
-      round: BigInt(round),
-      heads: bfd.heads,
-    });
-    setBetRound(round);
+    try{
+      const sp = await appClient.client.getTransactionParams().do();
+      const round = sp.firstRound + 3
+      await appClient.flip_coin({
+        bet_payment: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+          from: appClient.sender,
+          suggestedParams: sp,
+          to: appAddress,
+          amount: bfd.amount * 1_000,
+        }),
+        round: BigInt(round),
+        heads: bfd.heads,
+      });
+      setBetRound(round);
+    }catch(err) {
+      console.error(err)
+    }
   }
   async function settleBet() {
     console.log("Settling...");

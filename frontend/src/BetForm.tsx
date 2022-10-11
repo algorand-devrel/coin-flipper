@@ -7,6 +7,7 @@ import {
   FormGroup,
   Switch,
 } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
 
 export type BetFormData = {
   amount: number;
@@ -17,8 +18,9 @@ export type BetFormProps = {
   flipCoin(bfd: BetFormData): void;
 };
 
+const DEFAULT_BET = 25
 export function BetForm(bfp: BetFormProps) {
-  const [betAmount, setBetAmount] = React.useState<number>(3);
+  const [betAmount, setBetAmount] = React.useState<number>(DEFAULT_BET);
   const [heads, setHeads] = React.useState<boolean>(true);
   const [loading, setLoading] = React.useState<boolean>(false);
 
@@ -46,8 +48,8 @@ export function BetForm(bfp: BetFormProps) {
                 min={5}
                 max={1000}
                 size="small"
-                defaultValue={10}
-                step={1}
+                defaultValue={DEFAULT_BET}
+                step={5}
                 aria-label="Small"
                 valueLabelDisplay="auto"
                 onChange={updateBet}
@@ -63,9 +65,9 @@ export function BetForm(bfp: BetFormProps) {
         </FormGroup>
       </Box>
       <Box marginTop="10px">
-        <Button variant="outlined" onClick={submit}>
-          FlipCoin
-        </Button>
+        <LoadingButton variant="outlined" onClick={submit} loading={loading}>
+          Flip Coin
+        </LoadingButton>
       </Box>
     </div>
   );

@@ -25,7 +25,7 @@ export function SettleBetForm(bfp: SettleBetFormProps) {
 
   React.useEffect(()=>{
     if(currentRound === 0) updateCurrentRound()
-    if(currentRound >= round) setDisabled(false)
+    if(currentRound >= waitRound) setDisabled(false)
   }, [currentRound])
 
   async function updateCurrentRound(): Promise<void> {
