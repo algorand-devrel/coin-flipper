@@ -850,10 +850,10 @@ base64-js@^1.3.1:
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
 
-beaker-ts@^0.0.48:
-  version "0.0.48"
-  resolved "https://registry.yarnpkg.com/beaker-ts/-/beaker-ts-0.0.48.tgz#4f4583e63b9b181c813a01f14ed653c5996dc2d4"
-  integrity sha512-wKqSFhJlSVwoZfsN924bIrtnGB212cxlXwpy5rCeeNzDaSB7QO19c8DkD53xNU2LK1cDh/+Uo9TgKl3mZfesWA==
+beaker-ts@^0.0.49:
+  version "0.0.49"
+  resolved "https://registry.yarnpkg.com/beaker-ts/-/beaker-ts-0.0.49.tgz#35be58afb7eb3366cb0e3a3bd1836dfaf3407702"
+  integrity sha512-QHnFKPKBJ6hYQygvP4a6L8ifU3jH/NgMvB+ZYRPlC0khmktepjtVXXRsPNUItm7/Yut1uCDaGXPmCx6jk2LURA==
   dependencies:
     "@json-rpc-tools/utils" "^1.7.6"
     "@randlabs/myalgo-connect" "^1.1.0"
