@@ -22,7 +22,7 @@ $ git clone git@github.com:algorand-devrel/coin-flipper.git
 $ cd coin-flipper
 ```
 
-### Python
+### Back End 
 
 To run the demo with python, create a virtual environment, source it, and install requirements
 
@@ -41,7 +41,7 @@ Edit the main.py file to add your funded testnet account's mnemonic and run the 
 
 This will create the application, fund it, opt your user in, and call the coin flip endpoint (choosing heads) then after some rounds will try to settle the bet.
 
-### Typescript 
+### Front End 
 
 To run the demo with the front end, cd into the `frontend` directory and install the requirements
 
