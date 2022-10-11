@@ -27,6 +27,7 @@ $ cd coin-flipper
 To run the demo with python, create a virtual environment, source it, and install requirements
 
 ```
+$ cd contracts
 $ python -m venv .venv
 $ source .venv/bin/activate
 (.venv) $ pip install -r requirements.txt
@@ -42,17 +43,12 @@ This will create the application, fund it, opt your user in, and call the coin f
 
 ### Typescript 
 
-To run the demo with typescript, cd into the `js` directory and install the requirements
+To run the demo with the front end, cd into the `frontend` directory and install the requirements
 
 ```sh
-$ cd js
-$ npm install
+$ cd frontend 
+$ yarn
+$ yarn run dev
 ```
 
-Edit the `src/index.ts` file to add your funded testnet account's mnemonic and run the demo
-
-```sh
-npm run demo
-```
-
-This will create the application, fund it, opt your user in, and call the coin flip endpoint (choosing heads) then after some rounds will try to settle the bet.
+Log in with a funded testnet account and go through the steps to create, opt in, flip, settle

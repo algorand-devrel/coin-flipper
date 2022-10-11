@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "rebuild": "npx beaker generate ../artifacts/CoinFlipper.json src/"
+    "rebuild": "npx beaker generate ../contracts/artifacts/CoinFlipper.json src/"
   },
   "dependencies": {
     "@emotion/react": "^11.10.4",
