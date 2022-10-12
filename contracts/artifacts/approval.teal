@@ -1,6 +1,6 @@
 #pragma version 7
 intcblock 0 1 2
-bytecblock 0x626574735f6f75747374616e64696e67 0x636f6d6d69746d656e745f726f756e64 0x626561636f6e5f6170705f6964 0x6d61785f626574 0x6d696e5f626574 0x626574 0x6865616473
+bytecblock 0x626574735f6f75747374616e64696e67 0x636f6d6d69746d656e745f726f756e64 0x626574 0x626561636f6e5f6170705f6964 0x6d61785f626574 0x6d696e5f626574 0x6865616473 0x00
 txn NumAppArgs
 intc_0 // 0
 ==
@@ -14,7 +14,7 @@ pushbytes 0x8f28bdaa // "flip_coin(pay,uint64,bool)void"
 ==
 bnz main_l6
 txna ApplicationArgs 0
-pushbytes 0x390f2d36 // "settle(account,application)string"
+pushbytes 0x982fa8e5 // "settle(account,application)(bool,uint64)"
 ==
 bnz main_l5
 err
@@ -161,30 +161,30 @@ txn ApplicationID
 intc_0 // 0
 ==
 assert
-callsub create_1
+callsub create_0
 intc_1 // 1
 return
 
-// auth_only
-authonly_0:
-global CreatorAddress
-==
-retsub
-
 // create
-create_1:
-bytec_2 // "beacon_app_id"
+create_0:
+bytec_3 // "beacon_app_id"
 pushint 110096026 // 110096026
 app_global_put
 bytec_0 // "bets_outstanding"
 intc_0 // 0
 app_global_put
-bytec_3 // "max_bet"
+bytec 4 // "max_bet"
 pushint 1000000 // 1000000
 app_global_put
-bytec 4 // "min_bet"
+bytec 5 // "min_bet"
 pushint 5000 // 5000
 app_global_put
+retsub
+
+// auth_only
+authonly_1:
+global CreatorAddress
+==
 retsub
 
 // auth_only
@@ -257,88 +257,88 @@ return
 
 // configure
 configure_8:
+store 17
+store 16
 store 15
-store 14
-store 13
 txn Sender
-callsub authonly_0
+callsub authonly_1
 // unauthorized
 assert
-load 14
-load 15
+load 16
+load 17
 <
 // min bet must be < max bet
 assert
-bytec_2 // "beacon_app_id"
-load 13
-app_global_put
-bytec 4 // "min_bet"
-load 14
-app_global_put
-bytec_3 // "max_bet"
+bytec_3 // "beacon_app_id"
 load 15
+app_global_put
+bytec 5 // "min_bet"
+load 16
+app_global_put
+bytec 4 // "max_bet"
+load 17
 app_global_put
 retsub
 
 // flip_coin
 flipcoin_9:
+store 20
+store 19
 store 18
-store 17
-store 16
-load 16
+load 18
 gtxns Amount
-bytec 4 // "min_bet"
+bytec 5 // "min_bet"
 app_global_get
 >=
 // payment must be >= 5mA and < 1A
 assert
-load 16
+load 18
 gtxns Amount
-bytec_3 // "max_bet"
+bytec 4 // "max_bet"
 app_global_get
 <=
 // payment must be >= 5mA and < 1A
 assert
-load 16
+load 18
 gtxns Receiver
 global CurrentApplicationAddress
 ==
 // payment must to the contract address
 assert
-load 17
+load 19
 global Round
 >
-// round must be at least 1 interval in the future and no more than 10 rounds in the future
+// round requested must be at least 1 round in the future and no more than 10 rounds in the future
 assert
-load 17
+load 19
 global Round
 pushint 10 // 10
 +
 <
-// round must be at least 1 interval in the future and no more than 10 rounds in the future
+// round requested must be at least 1 round in the future and no more than 10 rounds in the future
 assert
 txn Sender
 intc_0 // 0
 bytec_1 // "commitment_round"
 app_local_get_ex
-store 20
-store 19
-load 20
+store 22
+store 21
+load 22
 !
 // there is already a bet outstanding
 assert
 txn Sender
 bytec_1 // "commitment_round"
-load 17
+load 19
 app_local_put
 txn Sender
-bytec 5 // "bet"
-load 16
+bytec_2 // "bet"
+load 18
 gtxns Amount
 app_local_put
 txn Sender
 bytec 6 // "heads"
-load 18
+load 20
 app_local_put
 bytec_0 // "bets_outstanding"
 bytec_0 // "bets_outstanding"
@@ -350,25 +350,25 @@ retsub
 
 // get_randomness
 getrandomness_10:
-store 21
+store 23
 intc_0 // 0
 itob
 extract 6 0
 pushbytes 0x // ""
 concat
-store 22
+store 24
 itxn_begin
 pushint 6 // appl
 itxn_field TypeEnum
-bytec_2 // "beacon_app_id"
+bytec_3 // "beacon_app_id"
 app_global_get
 itxn_field ApplicationID
 pushbytes 0x47c20c23 // "must_get(uint64,byte[])byte[]"
 itxn_field ApplicationArgs
-load 21
+load 23
 itob
 itxn_field ApplicationArgs
-load 22
+load 24
 itxn_field ApplicationArgs
 itxn_submit
 itxn LastLog
@@ -377,13 +377,14 @@ retsub
 
 // payout
 payout_11:
+store 25
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-txn Sender
+load 25
 itxn_field Receiver
-txn Sender
-bytec 5 // "bet"
+load 25
+bytec_2 // "bet"
 app_local_get
 intc_2 // 2
 *
@@ -400,35 +401,51 @@ txnas Accounts
 bytec_1 // "commitment_round"
 app_local_get
 callsub getrandomness_10
-store 12
+store 14
 txn Sender
 bytec 6 // "heads"
 app_local_get
-load 12
+load 14
 extract 2 0
 intc_0 // 0
 getbit
 ==
+!
+!
+store 12
+load 12
 bnz settle_12_l2
-pushbytes 0x596f75206c6f7374203a28 // "You lost :("
-store 11
-load 11
-len
+load 9
+txnas Accounts
+bytec_2 // "bet"
+app_local_get
+store 13
+bytec 7 // 0x00
+intc_0 // 0
+load 12
+setbit
+load 13
 itob
-extract 6 0
-load 11
 concat
 store 11
 b settle_12_l3
 settle_12_l2:
+load 9
+txnas Accounts
 callsub payout_11
-pushbytes 0x596f7520776f6e21 // "You won!"
-store 11
-load 11
-len
+load 9
+txnas Accounts
+bytec_2 // "bet"
+app_local_get
+intc_2 // 2
+*
+store 13
+bytec 7 // 0x00
+intc_0 // 0
+load 12
+setbit
+load 13
 itob
-extract 6 0
-load 11
 concat
 store 11
 settle_12_l3:
@@ -438,7 +455,7 @@ bytec_1 // "commitment_round"
 app_local_del
 load 9
 txnas Accounts
-bytec 5 // "bet"
+bytec_2 // "bet"
 app_local_del
 load 9
 txnas Accounts

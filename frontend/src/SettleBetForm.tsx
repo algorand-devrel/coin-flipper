@@ -54,6 +54,7 @@ export function SettleBetForm(bfp: SettleBetFormProps) {
 
   return (
     <div>
+      <h3>Waiting for round {waitRound} (current round {currentRound})</h3>
       <Box>
         <LinearProgress variant='determinate' value={normalizeValue(currentRound)}></LinearProgress>
       </Box>

@@ -21,7 +21,7 @@ export type BetFormProps = {
 const DEFAULT_BET = 25
 export function BetForm(bfp: BetFormProps) {
   const [betAmount, setBetAmount] = React.useState<number>(DEFAULT_BET);
-  const [heads, setHeads] = React.useState<boolean>(true);
+  const [heads, setHeads] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   async function submit() {
@@ -40,6 +40,7 @@ export function BetForm(bfp: BetFormProps) {
   return (
     <div>
       <Box>
+        <h3>Bet on the flip of a coin</h3>
         <FormGroup>
           <FormControlLabel
             labelPlacement="top"
@@ -60,14 +61,12 @@ export function BetForm(bfp: BetFormProps) {
           <FormControlLabel
             labelPlacement="top"
             control={<Switch id="heads" onChange={updateHeads} />}
-            label="Heads"
+            label={heads?"Heads":"Tails"}
           />
+          <LoadingButton variant="outlined" onClick={submit} loading={loading}>
+            Flip Coin
+          </LoadingButton>
         </FormGroup>
-      </Box>
-      <Box marginTop="10px">
-        <LoadingButton variant="outlined" onClick={submit} loading={loading}>
-          Flip Coin
-        </LoadingButton>
       </Box>
     </div>
   );

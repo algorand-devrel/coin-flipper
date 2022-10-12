@@ -29,7 +29,7 @@ const AnonClient = (client: algosdk.Algodv2, appId: number): CoinFlipper => {
 export default function App() {
   // Start with no app id for this demo, since we allow creation
   // Otherwise it'd come in as part of conf
-  const [appId, setAppId] = useState<number>(115057669);
+  const [appId, setAppId] = useState<number>(115871202);
   const [appAddress, setAppAddress] = useState<string>(
     algosdk.getApplicationAddress(appId)
   );
@@ -77,31 +77,56 @@ export default function App() {
     }
   }, [accountSettings, appId, algodClient]);
 
+  function connected(): boolean {
+    return accountSettings.data.acctList.length>0
+  }
+
+  function account(): string {
+    return connected()?SessionWalletManager.address(network):""
+  }
+
+
   // Check for an update bet round
   useEffect(() => {
-    if (betRound !== 0 || appClient.sender === "") return;
+    const addr = account()
+    if (addr === ""){
+      return setBetRound(0)
+    }
 
-    appClient.getAccountState().then((acctState)=>{
-      if("commitment_round" in acctState) setBetRound(acctState["commitment_round"] as number)
-    }).catch((err)=>{/*swallow it, probably fine*/})
-  });
+    if(betRound !== 0) return;
+
+    appClient
+      .getAccountState(addr)
+      .then((acctState) => {
+        if ("commitment_round" in acctState)
+          setBetRound(acctState["commitment_round"] as number);
+      })
+      .catch((err) => { setBetRound(0) });
+  }, [accountSettings]);
 
   // Check for an update opted in status
   useEffect(() => {
-    if(appClient.sender === "") return;
-    if(optedIn) return;
+    const addr = account()
+    if (addr === "") return setOptedIn(false);
 
-    algodClient.accountApplicationInformation(appClient.sender, appId).do().then((data)=>{
-      setOptedIn(true)
-    }).catch((err)=>{ /*swallow it, probly 404*/})
-  });
+    algodClient
+      .accountApplicationInformation(addr, appId)
+      .do()
+      .then((data) => {
+        setOptedIn('app-local-state' in data)
+      })
+      .catch((err) => { setOptedIn(false); });
+
+  }, [accountSettings]);
 
   // Deploy the app on chain
   async function createApp() {
+    setLoading(true)
     const { appId, appAddress } = await appClient.create();
     setAppId(appId);
     setAppAddress(appAddress);
-    alert(`Created app: ${appId}`);
+
+    console.log(`Created app: ${appId}`);
 
     // Initial funding for app account
     const atc = new algosdk.AtomicTransactionComposer();
@@ -116,6 +141,7 @@ export default function App() {
     });
     await atc.execute(algodClient, 4);
     console.log("Funded app");
+    setLoading(false)
   }
 
   // Opt account into app
@@ -128,9 +154,12 @@ export default function App() {
   async function flipCoin(bfd: BetFormData) {
     console.log(`Flip coin with data: `, bfd);
 
-    try{
+    try {
       const sp = await appClient.client.getTransactionParams().do();
-      const round = sp.firstRound + 3
+
+      // TODO: make this configurable?
+      const round = sp.firstRound + 5;
+
       await appClient.flip_coin({
         bet_payment: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
           from: appClient.sender,
@@ -141,22 +170,34 @@ export default function App() {
         round: BigInt(round),
         heads: bfd.heads,
       });
+
       setBetRound(round);
-    }catch(err) {
-      console.error(err)
+    } catch (err) {
+      console.error(err);
     }
   }
+
   async function settleBet() {
     console.log("Settling...");
-    const feePaySp = await appClient.client.getTransactionParams().do();
-    feePaySp.flatFee = true;
-    feePaySp.fee = 2000;
+    const feePaySp = await appClient.getSuggestedParams(undefined, 1);
     const result = await appClient.settle(
       { bettor: appClient.sender },
       { suggestedParams: feePaySp }
     );
     setBetRound(0);
-    alert(result.value);
+    const outcome = result.value?.won ? "Won!":"Lost :("
+    const amount = result.value?.amount
+    const msg = `You ${outcome} (${amount})`
+    alert(msg);
+  }
+
+  async function closeOut(){
+    console.log("OptingOut...");
+    setLoading(true)
+    await appClient.closeOut();
+    setOptedIn(false)
+    setBetRound(0);
+    setLoading(false)
   }
 
   // We allow creation, opt in, bet, settle
@@ -201,12 +242,21 @@ export default function App() {
       <Grid
         container
         direction="column"
-        justifyContent="center"
         alignItems="center"
+        justifyContent="space-around"
+        spacing={6}
+        margin="10px"
       >
-        <Grid item lg>
-          <Box margin="10px">{action}</Box>
-        </Grid>
+          <Grid item lg>
+            <Box>{action}</Box>
+          </Grid>
+
+          <Grid item lg>
+            <LoadingButton color="warning" loading={loading} onClick={closeOut}>
+              Opt Out of App
+            </LoadingButton>
+          </Grid>
+
       </Grid>
     </div>
   );
