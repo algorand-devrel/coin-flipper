@@ -24,7 +24,6 @@ const AnonClient = (client: algosdk.Algodv2, appId: number): CoinFlipper => {
     appId: appId,
   });
 };
-//tenant helmet motor sauce appear buddy gloom park average glory course wire buyer ostrich history time refuse room blame oxygen film diamond confirm ability spirit
 
 export default function App() {
   // Start with no app id for this demo, since we allow creation
