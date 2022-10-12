@@ -57,7 +57,7 @@ class CoinFlipper(Application):
     ###
     @external
     def flip_coin(
-        self, bet_payment: abi.PaymentTransaction, round: abi.Uint64, heads: abi.Bool
+        self, bet_payment: abi.PaymentTransaction, heads: abi.Bool, *, output: abi.Uint64 
     ):
         """called to place a bet on the outcome of a coin flip
 
@@ -78,19 +78,16 @@ class CoinFlipper(Application):
                 comment="payment must to the contract address",
             ),
             Assert(
-                round.get() > Global.round(),
-                round.get() < Global.round() + Int(10),
-                comment="round requested must be at least 1 round in the future and no more than 10 rounds in the future",
-            ),
-            Assert(
                 Not(self.commitment_round.exists()),
                 comment="there is already a bet outstanding",
             ),
+            (round := ScratchVar()).store(Global.round() + Int(3)),
             # Set fields for this sender
-            self.commitment_round[Txn.sender()].set(round.get()),
+            self.commitment_round[Txn.sender()].set(round.load()),
             self.bet[Txn.sender()].set(bet_payment.get().amount()),
             self.heads[Txn.sender()].set(heads.get()),
             self.bets_outstanding.increment(),
+            output.set(round.load())
         )
 
     @external

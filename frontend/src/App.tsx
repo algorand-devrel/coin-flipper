@@ -29,7 +29,7 @@ const AnonClient = (client: algosdk.Algodv2, appId: number): CoinFlipper => {
 export default function App() {
   // Start with no app id for this demo, since we allow creation
   // Otherwise it'd come in as part of conf
-  const [appId, setAppId] = useState<number>(115871202);
+  const [appId, setAppId] = useState<number>(115885218);
   const [appAddress, setAppAddress] = useState<string>(
     algosdk.getApplicationAddress(appId)
   );
@@ -88,21 +88,19 @@ export default function App() {
 
   // Check for an update bet round
   useEffect(() => {
-    const addr = account()
-    if (addr === ""){
-      return setBetRound(0)
-    }
-
+    if (!connected()) return setBetRound(0)
     if(betRound !== 0) return;
-
-    appClient
-      .getAccountState(addr)
-      .then((acctState) => {
-        if ("commitment_round" in acctState)
-          setBetRound(acctState["commitment_round"] as number);
-      })
-      .catch((err) => { setBetRound(0) });
+    getBetRound().then((round)=>{setBetRound(round)})
   }, [accountSettings]);
+
+  async function getBetRound(): Promise<number> {
+    try {
+      const acctState = await appClient.getAccountState(account()) 
+      if ("commitment_round" in acctState)
+        return acctState["commitment_round"] as number;
+    }catch(err) { }
+    return 0;
+  }
 
   // Check for an update opted in status
   useEffect(() => {
@@ -148,7 +146,24 @@ export default function App() {
   async function optIn() {
     setLoading(true);
     await appClient.optIn();
+    setOptedIn(true);
     setLoading(false);
+  }
+
+  async function updateApp(){
+    await appClient.update()
+  }
+  async function deleteApp(){
+    await appClient.delete()
+  }
+
+  async function closeOut(){
+    console.log("OptingOut...");
+    setLoading(true)
+    await appClient.closeOut();
+    setOptedIn(false)
+    setBetRound(0);
+    setLoading(false)
   }
 
   async function flipCoin(bfd: BetFormData) {
@@ -157,21 +172,18 @@ export default function App() {
     try {
       const sp = await appClient.client.getTransactionParams().do();
 
-      // TODO: make this configurable?
-      const round = sp.firstRound + 5;
-
-      await appClient.flip_coin({
+      const result = await appClient.flip_coin({
         bet_payment: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
           from: appClient.sender,
           suggestedParams: sp,
           to: appAddress,
           amount: bfd.amount * 1_000,
         }),
-        round: BigInt(round),
         heads: bfd.heads,
       });
 
-      setBetRound(round);
+
+       setBetRound(Number(result.returnValue));
     } catch (err) {
       console.error(err);
     }
@@ -191,14 +203,6 @@ export default function App() {
     alert(msg);
   }
 
-  async function closeOut(){
-    console.log("OptingOut...");
-    setLoading(true)
-    await appClient.closeOut();
-    setOptedIn(false)
-    setBetRound(0);
-    setLoading(false)
-  }
 
   // We allow creation, opt in, bet, settle
   const action = !appId ? (
