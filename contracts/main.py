@@ -51,29 +51,25 @@ def demo(app_id: int = 0):
     if "commitment_round" not in acct_state:
         sp = algod_client.suggested_params()
 
-        # Add 3 rounds to the first available round to give us a little
-        # padding time
-        round = sp.first + 3
-
         # Call coin flip to reserve randomness in the future
         print(f"Flipping coin :crossed_fingers:")
-        app_client.call(
+        result = app_client.call(
             CoinFlipper.flip_coin,
             bet_payment=TransactionWithSigner(
                 txn=transaction.PaymentTxn(ACCOUNT_ADDRESS, sp, app_addr, consts.algo),
                 signer=ACCOUNT_SIGNER,
             ),
-            round=round,
             heads=True,
         )
+        round = result.return_value
     else:
         # We have a bet
         round = acct_state["commitment_round"]
 
     print(f"Bet placed for round: {round}")
 
-    # wait an extra couple rounds  
-    wait_round = round + 2
+    # wait an extra few rounds to make sure its available
+    wait_round = round + 5
 
     sp = algod_client.suggested_params()
     current_round = sp.first
