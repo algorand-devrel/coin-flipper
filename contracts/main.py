@@ -11,8 +11,8 @@ ALGOD_HOST = "https://testnet-api.algonode.cloud"
 ALGOD_TOKEN = ""
 
 
-ACCOUNT_MNEMONIC = "tenant helmet motor sauce appear buddy gloom park average glory course wire buyer ostrich history time refuse room blame oxygen film diamond confirm ability spirit"
-# ACCOUNT_MNEMONIC = ""
+# plz dont steal my testnet money
+ACCOUNT_MNEMONIC = ""
 ACCOUNT_ADDRESS = to_public_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SECRET = to_private_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SIGNER = AccountTransactionSigner(ACCOUNT_SECRET)
