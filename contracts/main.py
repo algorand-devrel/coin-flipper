@@ -12,16 +12,16 @@ ALGOD_TOKEN = ""
 
 
 ACCOUNT_MNEMONIC = "tenant helmet motor sauce appear buddy gloom park average glory course wire buyer ostrich history time refuse room blame oxygen film diamond confirm ability spirit"
-#ACCOUNT_MNEMONIC = ""
+# ACCOUNT_MNEMONIC = ""
 ACCOUNT_ADDRESS = to_public_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SECRET = to_private_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SIGNER = AccountTransactionSigner(ACCOUNT_SECRET)
 
 # TODO uncomment this if you want to use the currently deployed coin-flipper app on testnet
-APP_ID = 115057669 
-#APP_ID = 0
+# APP_ID =  118513307
+APP_ID = 0
 
-WAIT_DELAY = 11 
+WAIT_DELAY = 5
 
 
 def demo(app_id: int = 0):
@@ -69,11 +69,11 @@ def demo(app_id: int = 0):
     print(f"Bet placed for round: {round}")
 
     # wait an extra few rounds to make sure its available
-    wait_round = round + 5
+    wait_round = round + WAIT_DELAY
 
     sp = algod_client.suggested_params()
     current_round = sp.first
-    while current_round<wait_round:
+    while current_round < wait_round:
         print(f"Currently at round {current_round}")
         algod_client.status_after_block(current_round)
         current_round += 1

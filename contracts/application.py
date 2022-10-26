@@ -2,9 +2,11 @@ from typing import Final
 from pyteal import *
 from beaker import *
 
+
 class BetResult(abi.NamedTuple):
     won: abi.Field[abi.Bool]
     amount: abi.Field[abi.Uint64]
+
 
 class CoinFlipper(Application):
     """
@@ -51,13 +53,16 @@ class CoinFlipper(Application):
         TealType.uint64, descr="The bet outcome, 0 for tails, >0 for heads"
     )
 
-
     ###
     # API Methods
     ###
     @external
     def flip_coin(
-        self, bet_payment: abi.PaymentTransaction, heads: abi.Bool, *, output: abi.Uint64 
+        self,
+        bet_payment: abi.PaymentTransaction,
+        heads: abi.Bool,
+        *,
+        output: abi.Uint64,
     ):
         """called to place a bet on the outcome of a coin flip
 
@@ -87,7 +92,7 @@ class CoinFlipper(Application):
             self.bet[Txn.sender()].set(bet_payment.get().amount()),
             self.heads[Txn.sender()].set(heads.get()),
             self.bets_outstanding.increment(),
-            output.set(round.load())
+            output.set(round.load()),
         )
 
     @external
@@ -118,15 +123,13 @@ class CoinFlipper(Application):
             # If they guessed right, payout
             # Take the very first bit and use it for heads/tails
             won.set(self.heads == GetBit(randomness.get(), Int(0))),
-            If(won.get()).Then(
-                self.payout(bettor.address()), 
+            If(won.get())
+            .Then(
+                self.payout(bettor.address()),
                 amount.set(self.bet[bettor.address()] * Int(2)),
-                output.set(won, amount)
+                output.set(won, amount),
             )
-            .Else(
-                amount.set(self.bet[bettor.address()]),
-                output.set(won, amount)
-            ),
+            .Else(amount.set(self.bet[bettor.address()]), output.set(won, amount)),
             # Reset state
             self.commitment_round[bettor.address()].delete(),
             self.bet[bettor.address()].delete(),
@@ -142,7 +145,8 @@ class CoinFlipper(Application):
             {
                 TxnField.type_enum: TxnType.Payment,
                 TxnField.receiver: addr,
-                TxnField.amount: self.bet[addr] * Int(2),  # double the money, double the fun
+                TxnField.amount: self.bet[addr]
+                * Int(2),  # double the money, double the fun
             }
         )
 
