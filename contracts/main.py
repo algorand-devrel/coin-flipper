@@ -18,7 +18,7 @@ ACCOUNT_SECRET = to_private_key(ACCOUNT_MNEMONIC)
 ACCOUNT_SIGNER = AccountTransactionSigner(ACCOUNT_SECRET)
 
 # TODO uncomment this if you want to use the currently deployed coin-flipper app on testnet
-# APP_ID =  118513307
+# APP_ID =  115885218
 APP_ID = 0
 
 WAIT_DELAY = 5
