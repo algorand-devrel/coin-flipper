@@ -10,7 +10,7 @@ With the release of AVM7 including the `vrf_verify` opcode, a smart contract can
 
 The application that verifies and stores the randomness can be treated as an oracle and other applications may call it to get the random value for a given round.
 
-The Oracle application in this example is on testnet with app id `​110096026` and adheres to [ARC-21](https://arc.algorand.foundation/ARCs/arc-0021)
+The Oracle application in this example is on testnet with app id `115885218` and adheres to [ARC-21](https://arc.algorand.foundation/ARCs/arc-0021)
 
 To read more about how VRF works and best practices when dealing with on-chain randomness, please see [this post](https://developer.algorand.org/articles/usage-and-best-practices-for-randomness-beacon/)
 
